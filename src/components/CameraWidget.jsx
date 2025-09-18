@@ -10,6 +10,64 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useVideoRecognition } from "../hooks/useVideoRecognition";
 
+const startButtonStyle = {
+  position: 'fixed',
+  bottom: '1rem',
+  right: '1rem',
+  cursor: 'pointer',
+  backgroundColor: '#818cf8', // indigo-400
+  color: 'white',
+  borderRadius: '50%',
+  width: '3rem',
+  height: '3rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 20,
+  border: 'none',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+  transition: 'background-color 0.2s ease',
+};
+
+const startButtonStyleActive = {
+  ...startButtonStyle,
+  backgroundColor: '#ef4444', // red-500
+};
+
+const videoContainerStyle = {
+  position: 'absolute',
+  zIndex: 999999,
+  bottom: '6rem',
+  right: '1rem',
+  width: '320px',
+  height: '240px',
+  borderRadius: '20px',
+  overflow: 'hidden',
+};
+
+const hiddenStyle = {
+  display: 'none',
+};
+
+const canvasStyle = {
+  position: 'absolute',
+  zIndex: 10,
+  width: '100%',
+  height: '100%',
+  top: 0,
+  left: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+};
+
+const videoStyle = {
+  position: 'absolute',
+  zIndex: 0,
+  width: '100%',
+  height: '100%',
+  top: 0,
+  left: 0,
+};
+
 export const CameraWidget = () => {
   const [start, setStart] = useState(false);
   const videoElement = useRef();
@@ -108,11 +166,13 @@ export const CameraWidget = () => {
     <>
       <button
         onClick={() => setStart((prev) => !prev)}
-        className={`fixed bottom-4 right-4 cursor-pointer ${
-          start
-            ? "bg-red-500 hover:bg-red-700"
-            : "bg-indigo-400 hover:bg-indigo-700"
-        } transition-colors duration-200 flex items-center justify-center z-20 p-4 rounded-full text-white drop-shadow-sm`}
+        style={start ? startButtonStyleActive : startButtonStyle}
+        onMouseEnter={(e) => {
+          e.target.style.backgroundColor = start ? '#dc2626' : '#4f46e5'; // red-700 or indigo-700
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.backgroundColor = start ? '#ef4444' : '#818cf8'; // red-500 or indigo-400
+        }}
       >
         {!start ? (
           <svg
@@ -121,7 +181,8 @@ export const CameraWidget = () => {
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="size-6"
+            width="1.5rem"
+            height="1.5rem"
           >
             <path
               strokeLinecap="round"
@@ -136,7 +197,8 @@ export const CameraWidget = () => {
             viewBox="0 0 24 24"
             strokeWidth={1.5}
             stroke="currentColor"
-            className="size-6"
+            width="1.5rem"
+            height="1.5rem"
           >
             <path
               strokeLinecap="round"
@@ -147,19 +209,17 @@ export const CameraWidget = () => {
         )}
       </button>
       <div
-        className={`absolute z-[999999] bottom-24 right-4 w-[320px] h-[240px] rounded-[20px] overflow-hidden ${
-          !start ? "hidden" : ""
-        }`}
+        style={!start ? { ...videoContainerStyle, ...hiddenStyle } : videoContainerStyle}
         width={640}
         height={480}
       >
         <canvas
           ref={drawCanvas}
-          className="absolute z-10 w-full h-full bg-black/50 top-0 left-0"
+          style={canvasStyle}
         />
         <video
           ref={videoElement}
-          className="absolute z-0 w-full h-full top-0 left-0"
+          style={videoStyle}
         />
       </div>
     </>

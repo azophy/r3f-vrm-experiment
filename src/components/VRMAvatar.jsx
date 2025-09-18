@@ -1,13 +1,12 @@
 import { VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
-import { useAnimations, useFBX, useGLTF } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Face, Hand, Pose } from "kalidokit";
 import { useControls } from "leva";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Euler, Object3D, Quaternion, Vector3 } from "three";
 import { lerp } from "three/src/math/MathUtils.js";
 import { useVideoRecognition } from "../hooks/useVideoRecognition";
-import { remapMixamoAnimationToVrm } from "../utils/remapMixamoAnimationToVrm";
 
 const tmpVec3 = new Vector3();
 const tmpQuat = new Quaternion();
@@ -23,35 +22,6 @@ export const VRMAvatar = ({ avatar, ...props }) => {
         return new VRMLoaderPlugin(parser);
       });
     }
-  );
-
-  const assetA = useFBX("models/animations/Swing Dancing.fbx");
-  const assetB = useFBX("models/animations/Thriller Part 2.fbx");
-  const assetC = useFBX("models/animations/Breathing Idle.fbx");
-
-  const currentVrm = userData.vrm;
-
-  const animationClipA = useMemo(() => {
-    const clip = remapMixamoAnimationToVrm(currentVrm, assetA);
-    clip.name = "Swing Dancing";
-    return clip;
-  }, [assetA, currentVrm]);
-
-  const animationClipB = useMemo(() => {
-    const clip = remapMixamoAnimationToVrm(currentVrm, assetB);
-    clip.name = "Thriller Part 2";
-    return clip;
-  }, [assetB, currentVrm]);
-
-  const animationClipC = useMemo(() => {
-    const clip = remapMixamoAnimationToVrm(currentVrm, assetC);
-    clip.name = "Idle";
-    return clip;
-  }, [assetC, currentVrm]);
-
-  const { actions } = useAnimations(
-    [animationClipA, animationClipB, animationClipC],
-    currentVrm.scene
   );
 
   useEffect(() => {
@@ -79,7 +49,7 @@ export const VRMAvatar = ({ avatar, ...props }) => {
 
   const resultsCallback = useCallback(
     (results) => {
-      if (!videoElement || !currentVrm) {
+      if (!videoElement || !userData.vrm) {
         return;
       }
       if (results.faceLandmarks) {
@@ -109,7 +79,7 @@ export const VRMAvatar = ({ avatar, ...props }) => {
         riggedLeftHand.current = Hand.solve(results.rightHandLandmarks, "Left");
       }
     },
-    [videoElement, currentVrm]
+    [videoElement, userData.vrm]
   );
 
   useEffect(() => {
@@ -127,7 +97,6 @@ export const VRMAvatar = ({ avatar, ...props }) => {
     angry,
     sad,
     happy,
-    animation,
   } = useControls("VRM", {
     aa: { value: 0, min: 0, max: 1 },
     ih: { value: 0, min: 0, max: 1 },
@@ -139,21 +108,7 @@ export const VRMAvatar = ({ avatar, ...props }) => {
     angry: { value: 0, min: 0, max: 1 },
     sad: { value: 0, min: 0, max: 1 },
     happy: { value: 0, min: 0, max: 1 },
-    animation: {
-      options: ["None", "Idle", "Swing Dancing", "Thriller Part 2"],
-      value: "Idle",
-    },
   });
-
-  useEffect(() => {
-    if (animation === "None" || videoElement) {
-      return;
-    }
-    actions[animation]?.play();
-    return () => {
-      actions[animation]?.stop();
-    };
-  }, [actions, animation, videoElement]);
 
   const lerpExpression = (name, value, lerpFactor) => {
     userData.vrm.expressionManager.setValue(
