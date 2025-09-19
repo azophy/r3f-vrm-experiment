@@ -34,9 +34,29 @@ const startButtonStyleActive = {
   backgroundColor: '#ef4444', // red-500
 };
 
+const toggleFeedButtonStyle = {
+  position: 'fixed',
+  bottom: '1rem',
+  right: '1rem',
+  cursor: 'pointer',
+  backgroundColor: '#6b7280', // gray-500
+  color: 'white',
+  borderRadius: '10%',
+  // width: '2.5rem',
+  // height: '2.5rem',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  zIndex: 20,
+  border: 'none',
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+  transition: 'background-color 0.2s ease',
+  fontSize: '1.2rem',
+};
+
 const videoContainerStyle = {
   position: 'absolute',
-  zIndex: 999999,
+  zIndex: 10,
   bottom: '1rem',
   right: '1rem',
   width: '320px',
@@ -82,6 +102,7 @@ const statusIndicatorStyle = {
 
 export const CameraWidget = () => {
   const [start, setStart] = useState(false);
+  const [showVideoFeed, setShowVideoFeed] = useState(true); // New state for showing/hiding video feed
   const videoElement = useRef();
   const drawCanvas = useRef();
   const setVideoElement = useVideoRecognition((state) => state.setVideoElement);
@@ -212,8 +233,17 @@ export const CameraWidget = () => {
       <div style={statusIndicatorStyle}>
         {getStatusText()}
       </div>
+      {start && ( // Only show the toggle button if the camera is started
+        <button
+          onClick={() => setShowVideoFeed(!showVideoFeed)}
+          style={toggleFeedButtonStyle}
+          title={showVideoFeed ? "Hide Video Feed" : "Show Video Feed"}
+        >
+          {showVideoFeed ? "show preview" : "hide preview"}
+        </button>
+      )}
       <div
-        style={!start ? { ...videoContainerStyle, ...hiddenStyle } : videoContainerStyle}
+        style={!start || !showVideoFeed ? { ...videoContainerStyle, ...hiddenStyle } : videoContainerStyle}
         width={640}
         height={480}
       >
