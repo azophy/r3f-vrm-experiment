@@ -4,6 +4,7 @@ import { Suspense, useEffect } from "react";
 import { CameraWidget } from "./components/CameraWidget";
 import { Experience } from "./components/Experience";
 import { useVideoRecognition } from "./hooks/useVideoRecognition";
+import { Leva } from "leva";
 
 function App() {
   const setAppStatus = useVideoRecognition((state) => state.setAppStatus);
@@ -16,8 +17,9 @@ function App() {
   return (
     <>
       <CameraWidget />
+      <Leva collapsed />
       <Loader />
-      <Canvas shadows camera={{ position: [0, 0, 2], fov: 30 }}>
+      <Canvas shadows camera={{ position: [0, 0.25, 2], fov: 30 }}>
         <color attach="background" args={["#333"]} />
         <Suspense>
           <Experience />

@@ -474,7 +474,7 @@ export const VRMAvatar = ({ avatar, ...props }) => {
     <group {...props}>
       <primitive
         object={scene}
-        rotation-y={0}
+        rotation-y={avatar !== "3636451243928341470.vrm" ? Math.PI : 0}
       />
     </group>
   );
