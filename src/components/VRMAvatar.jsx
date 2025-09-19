@@ -3,7 +3,7 @@ import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Face, Hand, Pose } from "kalidokit";
 import { useControls } from "leva";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Euler, Object3D, Quaternion, Vector3 } from "three";
 import { lerp } from "three/src/math/MathUtils.js";
 import { useVideoRecognition } from "../hooks/useVideoRecognition";
@@ -24,19 +24,25 @@ export const VRMAvatar = ({ avatar, ...props }) => {
     }
   );
 
-  useEffect(() => {
-    const vrm = userData.vrm;
-    console.log("VRM loaded:", vrm);
-    // calling these functions greatly improves the performance
-    VRMUtils.removeUnnecessaryVertices(scene);
-    VRMUtils.combineSkeletons(scene);
-    VRMUtils.combineMorphs(vrm);
+  const setAppStatus = useVideoRecognition((state) => state.setAppStatus);
+  const [modelLoaded, setModelLoaded] = useState(false);
 
-    // Disable frustum culling
-    vrm.scene.traverse((obj) => {
-      obj.frustumCulled = false;
-    });
-  }, [scene]);
+  useEffect(() => {
+    if (userData.vrm && !modelLoaded) {
+      console.log("VRM loaded:", userData.vrm);
+      setModelLoaded(true);
+      setAppStatus("MODEL_LOADED");
+      // calling these functions greatly improves the performance
+      VRMUtils.removeUnnecessaryVertices(scene);
+      VRMUtils.combineSkeletons(scene);
+      VRMUtils.combineMorphs(userData.vrm);
+
+      // Disable frustum culling
+      userData.vrm.scene.traverse((obj) => {
+        obj.frustumCulled = false;
+      });
+    }
+  }, [userData.vrm, scene, modelLoaded, setAppStatus]);
 
   const setResultsCallback = useVideoRecognition(
     (state) => state.setResultsCallback

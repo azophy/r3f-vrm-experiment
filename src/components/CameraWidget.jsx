@@ -68,11 +68,34 @@ const videoStyle = {
   left: 0,
 };
 
+const statusIndicatorStyle = {
+  position: 'fixed',
+  top: '1rem',
+  right: '1rem',
+  padding: '0.5rem 1rem',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  color: 'white',
+  borderRadius: '0.5rem',
+  zIndex: 1000,
+  fontSize: '0.875rem',
+};
+
 export const CameraWidget = () => {
   const [start, setStart] = useState(false);
   const videoElement = useRef();
   const drawCanvas = useRef();
   const setVideoElement = useVideoRecognition((state) => state.setVideoElement);
+  const appStatus = useVideoRecognition((state) => state.appStatus);
+  const setAppStatus = useVideoRecognition((state) => state.setAppStatus);
+
+  // Automatically start camera when model is loaded
+  useEffect(() => {
+    if (appStatus === "MODEL_LOADED" && !start) {
+      console.log("Model loaded, auto-starting camera");
+      setAppStatus("CAMERA_PREPARING");
+      setStart(true);
+    }
+  }, [appStatus, start]);
 
   const drawResults = (results) => {
     drawCanvas.current.width = videoElement.current.videoWidth;
@@ -136,6 +159,7 @@ export const CameraWidget = () => {
       return;
     }
     setVideoElement(videoElement.current);
+    setAppStatus("CAMERA_ACTIVE");
     const holistic = new Holistic({
       locateFile: (file) => {
         return `https://cdn.jsdelivr.net/npm/@mediapipe/holistic@0.5.1635989137/${file}`;
@@ -151,6 +175,10 @@ export const CameraWidget = () => {
     holistic.onResults((results) => {
       drawResults(results);
       useVideoRecognition.getState().resultsCallback?.(results);
+      // Update status to tracking active when we get results
+      if (appStatus !== "TRACKING_ACTIVE") {
+        setAppStatus("TRACKING_ACTIVE");
+      }
     });
     const camera = new Camera(videoElement.current, {
       onFrame: async () => {
@@ -162,8 +190,28 @@ export const CameraWidget = () => {
     camera.start();
   }, [start]);
 
+  const getStatusText = () => {
+    switch (appStatus) {
+      case "MODEL_LOADING":
+        return "Loading model...";
+      case "MODEL_LOADED":
+        return "Model loaded";
+      case "CAMERA_PREPARING":
+        return "Preparing camera...";
+      case "CAMERA_ACTIVE":
+        return "Camera active";
+      case "TRACKING_ACTIVE":
+        return "Tracking active";
+      default:
+        return "Ready";
+    }
+  };
+
   return (
     <>
+      <div style={statusIndicatorStyle}>
+        {getStatusText()}
+      </div>
       <button
         onClick={() => setStart((prev) => !prev)}
         style={start ? startButtonStyleActive : startButtonStyle}
