@@ -184,41 +184,43 @@ export const VRMAvatar = ({ avatar, ...props }) => {
       });
     } else {
       if (riggedFace.current) {
-        [
+        const expressions = [
           {
             name: "aa",
-            value: riggedFace.current.mouth.shape.A,
+            value: riggedFace.current.mouth && riggedFace.current.mouth.shape ? riggedFace.current.mouth.shape.A : 0,
           },
           {
             name: "ih",
-            value: riggedFace.current.mouth.shape.I,
+            value: riggedFace.current.mouth && riggedFace.current.mouth.shape ? riggedFace.current.mouth.shape.I : 0,
           },
           {
             name: "ee",
-            value: riggedFace.current.mouth.shape.E,
+            value: riggedFace.current.mouth && riggedFace.current.mouth.shape ? riggedFace.current.mouth.shape.E : 0,
           },
           {
             name: "oh",
-            value: riggedFace.current.mouth.shape.O,
+            value: riggedFace.current.mouth && riggedFace.current.mouth.shape ? riggedFace.current.mouth.shape.O : 0,
           },
           {
             name: "ou",
-            value: riggedFace.current.mouth.shape.U,
+            value: riggedFace.current.mouth && riggedFace.current.mouth.shape ? riggedFace.current.mouth.shape.U : 0,
           },
           {
             name: "blinkLeft",
-            value: 1 - riggedFace.current.eye.l,
+            value: riggedFace.current.eye ? 1 - riggedFace.current.eye.l : 0,
           },
           {
             name: "blinkRight",
-            value: 1 - riggedFace.current.eye.r,
+            value: riggedFace.current.eye ? 1 - riggedFace.current.eye.r : 0,
           },
-        ].forEach((item) => {
+        ];
+
+        expressions.forEach((item) => {
           lerpExpression(item.name, item.value, delta * 12);
         });
       }
       // Eyes
-      if (lookAtTarget.current) {
+      if (lookAtTarget.current && riggedFace.current && riggedFace.current.pupil) {
         userData.vrm.lookAt.target = lookAtTarget.current;
         lookAtDestination.current.set(
           -2 * riggedFace.current.pupil.x,
@@ -232,119 +234,133 @@ export const VRMAvatar = ({ avatar, ...props }) => {
       }
 
       // Body
-      rotateBone("neck", riggedFace.current.head, delta * 5, {
-        x: 0.7,
-        y: 0.7,
-        z: 0.7,
-      });
+      if (riggedFace.current && riggedFace.current.head) {
+        rotateBone("neck", riggedFace.current.head, delta * 5, {
+          x: 0.7,
+          y: 0.7,
+          z: 0.7,
+        });
+      }
     }
     if (riggedPose.current) {
-      rotateBone("chest", riggedPose.current.Spine, delta * 5, {
-        x: 0.3,
-        y: 0.3,
-        z: 0.3,
-      });
-      rotateBone("spine", riggedPose.current.Spine, delta * 5, {
-        x: 0.3,
-        y: 0.3,
-        z: 0.3,
-      });
-      rotateBone("hips", riggedPose.current.Hips.rotation, delta * 5, {
-        x: 0.7,
-        y: 0.7,
-        z: 0.7,
-      });
+      if (riggedPose.current.Spine) {
+        rotateBone("chest", riggedPose.current.Spine, delta * 5, {
+          x: 0.3,
+          y: 0.3,
+          z: 0.3,
+        });
+        rotateBone("spine", riggedPose.current.Spine, delta * 5, {
+          x: 0.3,
+          y: 0.3,
+          z: 0.3,
+        });
+      }
+      if (riggedPose.current.Hips && riggedPose.current.Hips.rotation) {
+        rotateBone("hips", riggedPose.current.Hips.rotation, delta * 5, {
+          x: 0.7,
+          y: 0.7,
+          z: 0.7,
+        });
+      }
 
       // LEFT ARM
-      rotateBone("leftUpperArm", riggedPose.current.LeftUpperArm, delta * 5);
-      rotateBone("leftLowerArm", riggedPose.current.LeftLowerArm, delta * 5);
+      if (riggedPose.current.LeftUpperArm) {
+        rotateBone("leftUpperArm", riggedPose.current.LeftUpperArm, delta * 5);
+      }
+      if (riggedPose.current.LeftLowerArm) {
+        rotateBone("leftLowerArm", riggedPose.current.LeftLowerArm, delta * 5);
+      }
       // RIGHT ARM
-      rotateBone("rightUpperArm", riggedPose.current.RightUpperArm, delta * 5);
-      rotateBone("rightLowerArm", riggedPose.current.RightLowerArm, delta * 5);
+      if (riggedPose.current.RightUpperArm) {
+        rotateBone("rightUpperArm", riggedPose.current.RightUpperArm, delta * 5);
+      }
+      if (riggedPose.current.RightLowerArm) {
+        rotateBone("rightLowerArm", riggedPose.current.RightLowerArm, delta * 5);
+      }
 
       if (riggedLeftHand.current) {
         rotateBone(
           "leftHand",
           {
-            z: riggedPose.current.LeftHand.z,
-            y: riggedLeftHand.current.LeftWrist.y,
-            x: riggedLeftHand.current.LeftWrist.x,
+            z: riggedPose.current && riggedPose.current.LeftHand ? riggedPose.current.LeftHand.z : 0,
+            y: riggedLeftHand.current.LeftWrist ? riggedLeftHand.current.LeftWrist.y : 0,
+            x: riggedLeftHand.current.LeftWrist ? riggedLeftHand.current.LeftWrist.x : 0,
           },
           delta * 12
         );
         rotateBone(
           "leftRingProximal",
-          riggedLeftHand.current.LeftRingProximal,
+          riggedLeftHand.current.LeftRingProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftRingIntermediate",
-          riggedLeftHand.current.LeftRingIntermediate,
+          riggedLeftHand.current.LeftRingIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftRingDistal",
-          riggedLeftHand.current.LeftRingDistal,
+          riggedLeftHand.current.LeftRingDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftIndexProximal",
-          riggedLeftHand.current.LeftIndexProximal,
+          riggedLeftHand.current.LeftIndexProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftIndexIntermediate",
-          riggedLeftHand.current.LeftIndexIntermediate,
+          riggedLeftHand.current.LeftIndexIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftIndexDistal",
-          riggedLeftHand.current.LeftIndexDistal,
+          riggedLeftHand.current.LeftIndexDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftMiddleProximal",
-          riggedLeftHand.current.LeftMiddleProximal,
+          riggedLeftHand.current.LeftMiddleProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftMiddleIntermediate",
-          riggedLeftHand.current.LeftMiddleIntermediate,
+          riggedLeftHand.current.LeftMiddleIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftMiddleDistal",
-          riggedLeftHand.current.LeftMiddleDistal,
+          riggedLeftHand.current.LeftMiddleDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftThumbProximal",
-          riggedLeftHand.current.LeftThumbProximal,
+          riggedLeftHand.current.LeftThumbProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftThumbMetacarpal",
-          riggedLeftHand.current.LeftThumbIntermediate,
+          riggedLeftHand.current.LeftThumbIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftThumbDistal",
-          riggedLeftHand.current.LeftThumbDistal,
+          riggedLeftHand.current.LeftThumbDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftLittleProximal",
-          riggedLeftHand.current.LeftLittleProximal,
+          riggedLeftHand.current.LeftLittleProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftLittleIntermediate",
-          riggedLeftHand.current.LeftLittleIntermediate,
+          riggedLeftHand.current.LeftLittleIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "leftLittleDistal",
-          riggedLeftHand.current.LeftLittleDistal,
+          riggedLeftHand.current.LeftLittleDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
       }
@@ -353,85 +369,85 @@ export const VRMAvatar = ({ avatar, ...props }) => {
         rotateBone(
           "rightHand",
           {
-            z: riggedPose.current.RightHand.z,
-            y: riggedRightHand.current.RightWrist.y,
-            x: riggedRightHand.current.RightWrist.x,
+            z: riggedPose.current && riggedPose.current.RightHand ? riggedPose.current.RightHand.z : 0,
+            y: riggedRightHand.current.RightWrist ? riggedRightHand.current.RightWrist.y : 0,
+            x: riggedRightHand.current.RightWrist ? riggedRightHand.current.RightWrist.x : 0,
           },
           delta * 12
         );
         rotateBone(
           "rightRingProximal",
-          riggedRightHand.current.RightRingProximal,
+          riggedRightHand.current.RightRingProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightRingIntermediate",
-          riggedRightHand.current.RightRingIntermediate,
+          riggedRightHand.current.RightRingIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightRingDistal",
-          riggedRightHand.current.RightRingDistal,
+          riggedRightHand.current.RightRingDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightIndexProximal",
-          riggedRightHand.current.RightIndexProximal,
+          riggedRightHand.current.RightIndexProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightIndexIntermediate",
-          riggedRightHand.current.RightIndexIntermediate,
+          riggedRightHand.current.RightIndexIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightIndexDistal",
-          riggedRightHand.current.RightIndexDistal,
+          riggedRightHand.current.RightIndexDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightMiddleProximal",
-          riggedRightHand.current.RightMiddleProximal,
+          riggedRightHand.current.RightMiddleProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightMiddleIntermediate",
-          riggedRightHand.current.RightMiddleIntermediate,
+          riggedRightHand.current.RightMiddleIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightMiddleDistal",
-          riggedRightHand.current.RightMiddleDistal,
+          riggedRightHand.current.RightMiddleDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightThumbProximal",
-          riggedRightHand.current.RightThumbProximal,
+          riggedRightHand.current.RightThumbProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightThumbMetacarpal",
-          riggedRightHand.current.RightThumbIntermediate,
+          riggedRightHand.current.RightThumbIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightThumbDistal",
-          riggedRightHand.current.RightThumbDistal,
+          riggedRightHand.current.RightThumbDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightLittleProximal",
-          riggedRightHand.current.RightLittleProximal,
+          riggedRightHand.current.RightLittleProximal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightLittleIntermediate",
-          riggedRightHand.current.RightLittleIntermediate,
+          riggedRightHand.current.RightLittleIntermediate || { x: 0, y: 0, z: 0 },
           delta * 12
         );
         rotateBone(
           "rightLittleDistal",
-          riggedRightHand.current.RightLittleDistal,
+          riggedRightHand.current.RightLittleDistal || { x: 0, y: 0, z: 0 },
           delta * 12
         );
       }
