@@ -39,11 +39,11 @@ const toggleFeedButtonStyle = {
   bottom: '1rem',
   right: '1rem',
   cursor: 'pointer',
-  backgroundColor: '#6b7280', // gray-500
+  padding: '0.5rem 1rem',
+  backgroundColor: 'rgba(0, 0, 0, 0.7)',
   color: 'white',
-  borderRadius: '10%',
-  // width: '2.5rem',
-  // height: '2.5rem',
+  borderRadius: '0.5rem',
+  fontSize: '0.875rem',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -51,7 +51,6 @@ const toggleFeedButtonStyle = {
   border: 'none',
   boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
   transition: 'background-color 0.2s ease',
-  fontSize: '1.2rem',
 };
 
 const videoContainerStyle = {
@@ -90,13 +89,13 @@ const videoStyle = {
 
 const statusIndicatorStyle = {
   position: 'fixed',
-  top: '1rem',
+  bottom: '1rem',
   left: '1rem',
   padding: '0.5rem 1rem',
   backgroundColor: 'rgba(0, 0, 0, 0.7)',
   color: 'white',
   borderRadius: '0.5rem',
-  zIndex: 1000,
+  zIndex: 20,
   fontSize: '0.875rem',
 };
 
