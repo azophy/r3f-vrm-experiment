@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect } from "react";
 import { CameraWidget } from "./components/CameraWidget";
 import { Experience } from "./components/Experience";
+import { Recorder } from "./components/Recorder";
 import { useVideoRecognition } from "./hooks/useVideoRecognition";
 import { Leva } from "leva";
 
@@ -17,6 +18,7 @@ function App() {
   return (
     <>
       <CameraWidget />
+      <Recorder />
       <Leva collapsed />
       <Loader />
       <Canvas shadows camera={{ position: [0, 0.25, 2], fov: 30 }}>

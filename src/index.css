@@ -21,3 +21,8 @@ button {
 .hidden {
   display: none;
 }
+
+/* Recorder component styles */
+video {
+  max-width: 100%;
+}
