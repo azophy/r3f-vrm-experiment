@@ -1,14 +1,15 @@
 import { Loader } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { CameraWidget } from "./components/CameraWidget";
 import { Experience } from "./components/Experience";
-import { Recorder } from "./components/Recorder";
+import { Recorder, CanvasCapture } from "./components/Recorder";
 import { useVideoRecognition } from "./hooks/useVideoRecognition";
 import { Leva } from "leva";
 
 function App() {
   const setAppStatus = useVideoRecognition((state) => state.setAppStatus);
+  const recorderRef = useRef();
 
   useEffect(() => {
     // Set initial status
@@ -18,7 +19,7 @@ function App() {
   return (
     <>
       <CameraWidget />
-      <Recorder />
+      <Recorder ref={recorderRef} />
       <Leva collapsed />
       <Loader />
       <Canvas shadows camera={{ position: [0, 0.25, 2], fov: 30 }}>
@@ -26,6 +27,11 @@ function App() {
         <Suspense>
           <Experience />
         </Suspense>
+        <CanvasCapture setCanvasRef={(canvas) => {
+          if (recorderRef.current) {
+            recorderRef.current.setCanvasRef(canvas);
+          }
+        }} />
       </Canvas>
     </>
   );

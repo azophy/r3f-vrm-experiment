@@ -1,20 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { useThree } from '@react-three/fiber';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 
-// Canvas capture component to get access to the WebGL canvas
-const CanvasCapture = ({ setCanvas }) => {
-  const { gl } = useThree();
-  
-  useEffect(() => {
-    if (gl && gl.domElement) {
-      setCanvas(gl.domElement);
-    }
-  }, [gl, setCanvas]);
-  
-  return null;
-};
-
-export const Recorder = () => {
+const RecorderWithRef = forwardRef((props, ref) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedBlob, setRecordedBlob] = useState(null);
   const [showPlaybackModal, setShowPlaybackModal] = useState(false);
@@ -28,7 +14,13 @@ export const Recorder = () => {
   const audioContextRef = useRef(null);
   const processedStreamRef = useRef(null);
   const streamRef = useRef(null);
-  const canvasCaptureRef = useRef(null);
+
+  // Expose canvasRef setter to parent component
+  useImperativeHandle(ref, () => ({
+    setCanvasRef: (canvas) => {
+      canvasRef.current = canvas;
+    }
+  }));
 
   // Update status with styling
   const updateStatus = (message, type = 'ready') => {
@@ -224,9 +216,6 @@ export const Recorder = () => {
 
   return (
     <>
-      {/* Canvas capture component to get reference to the WebGL canvas */}
-      <CanvasCapture setCanvas={(canvas) => { canvasRef.current = canvas; }} />
-      
       <div className="fixed bottom-4 left-4 z-20 bg-white rounded-lg shadow-lg p-4 w-80">
         <h2 className="text-lg font-bold mb-2">🎥 3D Scene Recorder</h2>
         <p className="text-sm text-gray-600 mb-3">Record VRM avatar with voice anonymization</p>
@@ -328,4 +317,24 @@ export const Recorder = () => {
       )}
     </>
   );
+});
+
+// Canvas capture component to get access to the WebGL canvas
+export const CanvasCapture = ({ setCanvasRef }) => {
+  // Get the canvas element from the DOM
+  useEffect(() => {
+    // Wait a bit for the canvas to be created
+    const timeoutId = setTimeout(() => {
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        setCanvasRef(canvas);
+      }
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [setCanvasRef]);
+
+  return null;
 };
+
+export const Recorder = RecorderWithRef;
