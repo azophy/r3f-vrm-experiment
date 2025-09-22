@@ -1,4 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
+import { useThree } from '@react-three/fiber';
+
+// Canvas capture component to get access to the WebGL canvas
+const CanvasCapture = ({ setCanvas }) => {
+  const { gl } = useThree();
+  
+  useEffect(() => {
+    if (gl && gl.domElement) {
+      setCanvas(gl.domElement);
+    }
+  }, [gl, setCanvas]);
+  
+  return null;
+};
 
 export const Recorder = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -8,12 +22,13 @@ export const Recorder = () => {
   const [status, setStatus] = useState('Ready to record');
   const [statusType, setStatusType] = useState('ready'); // ready, recording, error
 
-  const previewRef = useRef(null);
+  const canvasRef = useRef(null);
   const playbackRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioContextRef = useRef(null);
   const processedStreamRef = useRef(null);
   const streamRef = useRef(null);
+  const canvasCaptureRef = useRef(null);
 
   // Update status with styling
   const updateStatus = (message, type = 'ready') => {
@@ -44,9 +59,6 @@ export const Recorder = () => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     audioContextRef.current = audioContext;
 
-    // Get video track
-    const videoTrack = inputStream.getVideoTracks()[0];
-
     // Create audio processing chain
     const source = audioContext.createMediaStreamSource(inputStream);
     const destination = audioContext.createMediaStreamDestination();
@@ -74,21 +86,27 @@ export const Recorder = () => {
     source.connect(processor);
     processor.connect(destination);
 
-    // Create new stream with processed audio and original video
-    const processedAudioTrack = destination.stream.getAudioTracks()[0];
-    const newStream = new MediaStream([videoTrack, processedAudioTrack]);
+    return destination.stream;
+  };
 
-    return newStream;
+  // Capture canvas as video stream
+  const captureCanvasStream = () => {
+    if (!canvasRef.current) {
+      throw new Error('Canvas not available');
+    }
+    
+    // Capture canvas as media stream
+    const canvasStream = canvasRef.current.captureStream(30); // 30 FPS
+    return canvasStream;
   };
 
   // Start recording
   const startRecording = async () => {
     try {
-      updateStatus('Requesting camera and microphone...', 'ready');
+      updateStatus('Requesting microphone and preparing recording...', 'ready');
 
-      // Get user media
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 1280, height: 720 },
+      // Get user media (audio only)
+      const audioStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: false,
           noiseSuppression: false,
@@ -96,19 +114,23 @@ export const Recorder = () => {
         }
       });
 
-      streamRef.current = stream;
-
-      // Show preview
-      if (previewRef.current) {
-        previewRef.current.srcObject = stream;
-      }
+      streamRef.current = audioStream;
 
       // Process audio
-      const processedStream = await processAudio(stream);
-      processedStreamRef.current = processedStream;
+      const processedAudioStream = await processAudio(audioStream);
+      processedStreamRef.current = processedAudioStream;
+
+      // Capture canvas stream
+      const canvasStream = captureCanvasStream();
+      
+      // Combine canvas video track with processed audio track
+      const combinedStream = new MediaStream([
+        canvasStream.getVideoTracks()[0],
+        processedAudioStream.getAudioTracks()[0]
+      ]);
 
       // Start recording
-      const mediaRecorder = new MediaRecorder(processedStream, {
+      const mediaRecorder = new MediaRecorder(combinedStream, {
         mimeType: 'video/webm;codecs=h264,opus'
       });
 
@@ -130,10 +152,10 @@ export const Recorder = () => {
       mediaRecorder.start(100);
       setIsRecording(true);
 
-      updateStatus('Recording with voice anonymization...', 'recording');
+      updateStatus('Recording 3D scene with voice anonymization...', 'recording');
     } catch (error) {
       console.error('Error starting recording:', error);
-      updateStatus('Error: Could not access camera/microphone. Please ensure permissions are granted.', 'error');
+      updateStatus(`Error: ${error.message}`, 'error');
     }
   };
 
@@ -154,10 +176,6 @@ export const Recorder = () => {
       // Close audio context
       if (audioContextRef.current) {
         audioContextRef.current.close();
-      }
-
-      if (previewRef.current) {
-        previewRef.current.srcObject = null;
       }
     }
   };
@@ -206,20 +224,16 @@ export const Recorder = () => {
 
   return (
     <>
+      {/* Canvas capture component to get reference to the WebGL canvas */}
+      <CanvasCapture setCanvas={(canvas) => { canvasRef.current = canvas; }} />
+      
       <div className="fixed bottom-4 left-4 z-20 bg-white rounded-lg shadow-lg p-4 w-80">
-        <h2 className="text-lg font-bold mb-2">🎥 Video Recorder</h2>
-        <p className="text-sm text-gray-600 mb-3">Record video with voice anonymization</p>
+        <h2 className="text-lg font-bold mb-2">🎥 3D Scene Recorder</h2>
+        <p className="text-sm text-gray-600 mb-3">Record VRM avatar with voice anonymization</p>
 
         <div className={`p-2 rounded mb-3 text-center text-sm font-medium ${getStatusClass()}`}>
           {status}
         </div>
-
-        <video 
-          ref={previewRef} 
-          autoPlay 
-          muted 
-          className="w-full rounded border-2 border-gray-200 mb-3"
-        />
 
         <div className="mb-3">
           <h3 className="text-sm font-medium mb-2">Voice Anonymization</h3>
@@ -288,7 +302,7 @@ export const Recorder = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
           <div className="bg-white rounded-lg shadow-xl p-4 max-w-2xl w-full">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-bold"> Recorded Video</h3>
+              <h3 className="text-lg font-bold">Recorded Video</h3>
               <button 
                 className="text-gray-500 hover:text-gray-700 text-2xl"
                 onClick={closePlaybackModal}
