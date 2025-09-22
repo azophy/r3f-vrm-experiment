@@ -3,7 +3,8 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense, useEffect, useRef } from "react";
 import { CameraWidget } from "./components/CameraWidget";
 import { Experience } from "./components/Experience";
-import { Recorder, CanvasCapture } from "./components/Recorder";
+import { Recorder } from "./components/Recorder";
+import { CanvasCapture } from "./components/CanvasCapture";
 import { useVideoRecognition } from "./hooks/useVideoRecognition";
 import { Leva } from "leva";
 

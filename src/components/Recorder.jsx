@@ -84,7 +84,13 @@ const RecorderWithRef = forwardRef((props, ref) => {
   // Capture canvas as video stream
   const captureCanvasStream = () => {
     if (!canvasRef.current) {
-      throw new Error('Canvas not available');
+      // Try to get canvas from DOM directly
+      const canvas = document.querySelector('canvas');
+      if (canvas) {
+        canvasRef.current = canvas;
+      } else {
+        throw new Error('Canvas not available');
+      }
     }
     
     // Capture canvas as media stream
@@ -318,23 +324,5 @@ const RecorderWithRef = forwardRef((props, ref) => {
     </>
   );
 });
-
-// Canvas capture component to get access to the WebGL canvas
-export const CanvasCapture = ({ setCanvasRef }) => {
-  // Get the canvas element from the DOM
-  useEffect(() => {
-    // Wait a bit for the canvas to be created
-    const timeoutId = setTimeout(() => {
-      const canvas = document.querySelector('canvas');
-      if (canvas) {
-        setCanvasRef(canvas);
-      }
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [setCanvasRef]);
-
-  return null;
-};
 
 export const Recorder = RecorderWithRef;
