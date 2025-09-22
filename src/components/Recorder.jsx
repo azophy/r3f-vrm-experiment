@@ -222,7 +222,7 @@ const RecorderWithRef = forwardRef((props, ref) => {
 
   return (
     <>
-      <div className="fixed bottom-4 left-4 z-20 bg-white rounded-lg shadow-lg p-4 w-80">
+      <div className="fixed top-4 left-4 z-20 bg-white rounded-lg shadow-lg p-4 w-80">
         <h2 className="text-lg font-bold mb-2">🎥 3D Scene Recorder</h2>
         <p className="text-sm text-gray-600 mb-3">Record VRM avatar with voice anonymization</p>
 
